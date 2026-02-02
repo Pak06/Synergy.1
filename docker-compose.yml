@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:15
+    container_name: synergy_db
+    environment:
+      POSTGRES_USER: user_admin
+      POSTGRES_PASSWORD: synergy_password
+      POSTGRES_DB: synergy_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_admin -d synergy_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: ./backend
+    container_name: synergy_app
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - ./frontend/templates:/app/templates
+      - ./frontend/static:/app/static
+    environment:
+      DATABASE_URL: postgresql://user_admin:synergy_password@db:5432/synergy_db
+    depends_on:
+      db:
+        condition: service_healthy
